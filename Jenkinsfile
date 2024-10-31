@@ -1,51 +1,78 @@
 pipeline {
     agent any
-
+    
     stages {
         stage('Checkout') {
             steps {
-                // Clone the repository
-                checkout scm
+                git url: 'https://github.com/vedantshete77/vericose', branch: 'main'
             }
         }
         
-        stage('Install Dependencies') {
+        stage('Install Backend Dependencies') {
             steps {
-                script {
-                    if (isUnix()) {
-                        sh 'npm install --prefix backend'
-                        sh 'npm install --prefix frontend'
-                    } else {
-                        bat 'npm install --prefix backend'
-                        bat 'npm install --prefix frontend'
+                dir('backend') {
+                    script {
+                        if (isUnix()) {
+                            sh 'npm install'
+                        } else {
+                            bat 'npm install'
+                        }
                     }
                 }
             }
         }
         
-        stage('Build Frontend') {
+        stage('Install Frontend Dependencies') {
             steps {
-                script {
-                    if (isUnix()) {
-                        sh 'npm run build --prefix frontend'
-                    } else {
-                        bat 'npm run build --prefix frontend'
+                dir('frontend') {
+                    script {
+                        if (isUnix()) {
+                            sh 'npm install'
+                        } else {
+                            bat 'npm install'
+                        }
                     }
                 }
             }
         }
 
-        stage('Start Servers') {
+        stage('Build Frontend') {
             steps {
-                script {
-                    if (isUnix()) {
-                        // Start backend and frontend servers in the background on Unix
-                        sh 'nohup npm run backend --prefix backend &'
-                        sh 'nohup npm start --prefix frontend &'
-                    } else {
-                        // Start backend and frontend servers in the background on Windows
-                        bat 'start /B npm run backend --prefix backend'
-                        bat 'start /B npm start --prefix frontend'
+                dir('frontend') {
+                    script {
+                        if (isUnix()) {
+                            sh 'npm run build'
+                        } else {
+                            bat 'npm run build'
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage('Start Backend Server') {
+            steps {
+                dir('backend') {
+                    script {
+                        if (isUnix()) {
+                            sh 'npm start'
+                        } else {
+                            bat 'npm start'
+                        }
+                    }
+                }
+            }
+        }
+        
+        stage('Start Frontend Server') {
+            steps {
+                dir('frontend') {
+                    script {
+                        if (isUnix()) {
+                            sh 'npm start'
+                        } else {
+                            bat 'npm start'
+                        }
                     }
                 }
             }
